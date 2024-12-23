@@ -8,29 +8,80 @@
 import XCTest
 @testable import FetchMenuApp
 
-final class FetchMenuAppTests: XCTestCase {
-
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+@MainActor
+final class RecipeViewModelTests: XCTestCase {
+    func testLoadRecipesWithValidData() async {
+        // Arrange
+        let mockService = MockRecipeService(responseType: .valid)
+        let viewModel = RecipeViewModel(service: mockService)
+        
+        // Act
+        await viewModel.loadRecipes()
+        
+        // Assert
+        XCTAssertFalse(viewModel.isLoading)
+        XCTAssertFalse(viewModel.isEmpty)
+        XCTAssertNil(viewModel.errorMessage)
+        XCTAssertEqual(viewModel.recipes.count, 1)
+        XCTAssertEqual(viewModel.recipes.first?.recipeName, "Spaghetti Carbonara")
     }
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+    func testLoadRecipesWithMalformedData() async {
+        // Arrange
+        let mockService = MockRecipeService(responseType: .malformed)
+        let viewModel = RecipeViewModel(service: mockService)
+        
+        // Act
+        await viewModel.loadRecipes()
+        
+        // Assert
+        XCTAssertFalse(viewModel.isLoading)
+        XCTAssertTrue(viewModel.recipes.isEmpty)
+        XCTAssertEqual(viewModel.errorMessage, "Failed to decode recipe data.")
+        XCTAssertFalse(viewModel.isEmpty) // Malformed is not treated as empty
     }
 
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
+    func testLoadRecipesWithEmptyData() async {
+        // Arrange
+        let mockService = MockRecipeService(responseType: .empty)
+        let viewModel = RecipeViewModel(service: mockService)
+        
+        // Act
+        await viewModel.loadRecipes()
+        
+        // Assert
+        XCTAssertFalse(viewModel.isLoading)
+        XCTAssertTrue(viewModel.isEmpty)
+        XCTAssertNil(viewModel.errorMessage)
+        XCTAssertTrue(viewModel.recipes.isEmpty)
     }
 
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-        }
+    func testLoadRecipesWithInvalidURL() async {
+        // Arrange
+        let mockService = MockRecipeService(responseType: .invalidURL)
+        let viewModel = RecipeViewModel(service: mockService)
+        
+        // Act
+        await viewModel.loadRecipes()
+        
+        // Assert
+        XCTAssertFalse(viewModel.isLoading)
+        XCTAssertTrue(viewModel.recipes.isEmpty)
+        XCTAssertEqual(viewModel.errorMessage, "The recipe URL is invalid.")
+        XCTAssertFalse(viewModel.isEmpty)
     }
 
+    func testLoadRecipesWithUnexpectedError() async {
+        // Arrange
+        let mockService = MockRecipeService(responseType: .unexpectedError)
+        let viewModel = RecipeViewModel(service: mockService)
+        
+        // Act
+        await viewModel.loadRecipes()
+        
+        // Assert
+        XCTAssertFalse(viewModel.isLoading)
+        XCTAssertTrue(viewModel.recipes.isEmpty)
+        XCTAssertEqual(viewModel.errorMessage, "An unexpected error occurred: The operation couldn’t be completed. (Test error 1.)")
+    }
 }
