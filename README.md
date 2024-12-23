@@ -33,11 +33,11 @@
 
 ## Time Spent
 
-	- Total Time: Approximately 7 hours.
+	- Total Time: Approximately 6 hours.
 	- Time Allocation:
 	1 Service layer, caching, view Model: ~3 hours.
-	2 User Interface Development: ~2 hours.
-	3 Testing and Debugging: ~1`hours.
+	2 User Interface Development: ~1:30 hours.
+	3 Testing and Debugging: ~30`hours.
 	4 Refinements and Documentation: ~1 hour.
 
 ## Trade-offs and Decisions
